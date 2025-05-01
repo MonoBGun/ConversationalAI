@@ -7,6 +7,7 @@ const agentStatus = document.getElementById('agentStatus');
 
 // Global variable to track conversation ID
 let conversationId = null;
+let conversation=null;
 
 async function getSignedUrl() {
     const response = await fetch('/api/get-signed-url');
@@ -25,24 +26,15 @@ async function startConversation() {
         });
         
         const signedUrl = await getSignedUrl();
-        const conversation = await Conversation.startSession({
+            conversation = await Conversation.startSession({
             signedUrl,
             onConnect: () => {
                 connectionStatus.textContent = 'Connected';
                 startButton.disabled = true;
                 stopButton.disabled = false;
             },
-            onDisconnect: async () => {
-                try {
-                    await conversation.endSession();
-                    await reviewConversation(conversationId);
-                    conversationId = null;
-                    startButton.disabled = false;
-                    stopButton.disabled = true;
-                    connectionStatus.textContent = 'Disconnected';
-                } catch (error) {
-                    console.error('Error during disconnect:', error);
-                }
+            onDisconnect: () => {
+                endConversation();
             },
             onError: (error) => {
                 console.error('Conversation error:', error);
@@ -56,6 +48,28 @@ async function startConversation() {
         conversationId = conversation.getId();
     } catch (error) {
         console.error('Failed to start conversation:', error);
+    }
+}
+
+async function endConversation() {
+    try {
+        if (conversation) {
+            await conversation.endSession(); // Ensure the session ends completely
+        }
+
+        if (conversationId) {
+            // Add a delay to allow the server to process the transcript
+            await new Promise(resolve => setTimeout(resolve, 2000)); // 2-second delay
+
+            // Review the conversation after the delay
+            await reviewConversation(conversationId);
+        }
+    } catch (error) {
+        console.error('Error ending conversation:', error);
+    } finally {
+        conversationId = null;
+        startButton.disabled = false;
+        stopButton.disabled = true;
     }
 }
 
@@ -86,9 +100,6 @@ async function reviewConversation(conversationId) {
 }
 
 startButton.addEventListener('click', startConversation);
-stopButton.addEventListener('click', () => {
-    // Review the conversation
-    reviewConversation(conversationId);
-});
+stopButton.addEventListener('click', endConversation)
 
 // ... rest of the code ...

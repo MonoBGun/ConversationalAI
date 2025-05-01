@@ -12,9 +12,11 @@ console.log('PORT:', process.env.PORT);
 console.log('ELEVENLABS_API_KEY:', process.env.ELEVENLABS_API_KEY ? 'Set' : 'Not Set');
 console.log('AGENT_ID:', process.env.AGENT_ID ? 'Set' : 'Not Set');
 
+
 const client = new ElevenLabsClient({
     apiKey: process.env.ELEVENLABS_API_KEY
 });
+ 
 
 const app = express();
 app.use(cors());
@@ -27,10 +29,7 @@ app.use((err, req, res, next) => {
     console.error('Error:', err);
     res.status(500).json({ error: err.message });
 });
-
-// Store the current conversation ID
-let currentConversationId = null;
-
+//Gets a signed url from ElevenLabs to start a conversation
 app.get('/api/get-signed-url', async (req, res) => {
     const response = await fetch(
         `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${process.env.AGENT_ID}`,
@@ -55,7 +54,7 @@ app.get("/api/conversation/:conversationId", async (req, res) => {
     try {
         const { conversationId } = req.params;
         console.log('Getting transcript for conversation:', conversationId);
-        
+
         const currentConversation = await client.conversationalAi.getConversation(conversationId);
         console.log('Received conversation data');
 
