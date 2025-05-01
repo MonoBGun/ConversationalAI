@@ -29,15 +29,17 @@ app.use((err, req, res, next) => {
     console.error('Error:', err);
     res.status(500).json({ error: err.message });
 });
+<<<<<<< HEAD
 //Gets a signed url from ElevenLabs to start a conversation
+=======
+//Get a signed URL from Elevenlabs to start a conversation
+>>>>>>> 47a9ffcadaccd8878d17d33ba78cf77a0efc287a
 app.get('/api/get-signed-url', async (req, res) => {
     const response = await fetch(
         `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${process.env.AGENT_ID}`,
         {
             method: 'GET',
             headers: {
-                // Requesting a signed url requires your ElevenLabs API key
-                // Do NOT expose your API key to the client!
                 'xi-api-key': process.env.ELEVENLABS_API_KEY,
             },
         }
